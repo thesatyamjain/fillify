@@ -1,0 +1,243 @@
+/* Design Read: Fillify document workstation will feature a high-contrast minimalist language — true off-black background (#09090b), solid zinc surfaces (#18181b), crisp 1px borders (#27272a), and a Cobalt Blue accent (#2563eb). */
+
+:root {
+  --bg-dark: #09090b;
+  --bg-surface: #18181b;
+  --bg-surface-elevated: #27272a;
+  --bg-surface-hover: #27272a;
+
+  --border-subtle: #27272a;
+  --border-medium: #3f3f46;
+  --border-focus: #2563eb;
+  
+  --text-main: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-surface: rgba(37, 99, 235, 0.15);
+
+  --blank-chip-bg: #18181b;
+  --blank-chip-border: #3f3f46;
+  --blank-chip-text: #e4e4e7;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  --font-heading: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Solid Workspace Panel */
+.workspace-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease;
+}
+
+.workspace-panel-hover:hover {
+  border-color: var(--border-medium);
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+p {
+  max-width: 65ch;
+}
+
+/* Blank chip in text editor */
+.blank-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  margin: 0 4px;
+  background: var(--blank-chip-bg);
+  border: 1px solid var(--blank-chip-border);
+  color: var(--blank-chip-text);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+}
+
+.blank-chip:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--accent-primary);
+  color: var(--text-main);
+}
+
+.blank-chip-type {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Custom inputs */
+.workspace-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.1s ease;
+}
+
+.workspace-input:focus {
+  border-color: var(--border-focus);
+}
+
+/* Buttons - Unified 32px Height System */
+.btn-primary,
+.btn-secondary,
+.icon-btn {
+  height: 32px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.btn-primary {
+  padding: 0 14px;
+  background: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-primary-hover);
+  border-color: var(--accent-primary-hover);
+}
+
+.btn-secondary {
+  padding: 0 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background: var(--border-subtle);
+  border-color: var(--border-medium);
+}
+
+.icon-btn {
+  width: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+}
+
+.icon-btn:hover {
+  background: var(--bg-surface-elevated);
+  color: var(--text-main);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-medium);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Print Override */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  
+  .print-document-body,
+  .print-document-body * {
+    visibility: visible !important;
+  }
+  
+  .print-document-body {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Georgia', 'Times New Roman', serif !important;
+    font-size: 12pt !important;
+    line-height: 1.65 !important;
+    white-space: pre-wrap !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+}
+
