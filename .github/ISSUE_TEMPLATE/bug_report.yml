@@ -1,0 +1,58 @@
+name: Bug Report
+description: Create a report to help us improve Fillify
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue with Fillify. Please provide as much context as possible.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise description of the bug.
+      placeholder: e.g. Cursor jumps to end of input when editing currency field
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps explaining how to trigger the issue.
+      placeholder: |
+        1. Open Template Editor
+        2. Paste text containing '[Date]'
+        3. Switch to Wizard Mode
+        4. Observe the unexpected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually occurred.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, browser name, and browser version.
+      placeholder: e.g. Windows 11, Chrome 128
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any error console logs or context about the template used.
+    validations:
+      required: false
