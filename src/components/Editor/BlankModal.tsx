@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Blank, BlankType } from '../../types/template';
+import { useModalDismiss } from '../../utils/useModalDismiss';
 
 interface BlankModalProps {
   isOpen: boolean;
@@ -22,6 +23,8 @@ export const BlankModal: React.FC<BlankModalProps> = ({
   const [defaultValue, setDefaultValue] = useState('');
   const [helpText, setHelpText] = useState('');
   const [optionsStr, setOptionsStr] = useState('');
+
+  useModalDismiss(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -74,31 +77,37 @@ export const BlankModal: React.FC<BlankModalProps> = ({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(4px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 100,
-      padding: '20px',
-    }}>
-      <div className="workspace-panel animate-fade-in" style={{
-        width: '100%',
-        maxWidth: '520px',
-        background: 'var(--bg-surface)',
-        padding: '28px',
-        border: '1px solid var(--border-subtle)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 700 }}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="blank-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="no-print"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.75)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: 'var(--space-page-x)',
+      }}
+    >
+      <div className="modal-responsive-card animate-fade-in" style={{ maxWidth: '520px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+          <h3
+            id="blank-modal-title"
+            style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 700 }}
+          >
             {initialBlank?.id ? 'Edit Blank Field' : 'Define New Blank Field'}
           </h3>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '1.5rem', cursor: 'pointer', padding: '4px' }}
           >
             ×
           </button>
@@ -142,7 +151,7 @@ export const BlankModal: React.FC<BlankModalProps> = ({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: 'var(--text-muted)' }}>
                 Field Type

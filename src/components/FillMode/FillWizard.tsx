@@ -8,6 +8,7 @@ interface FillWizardProps {
   template: Template;
   onSaveFillHistory: (values: Record<string, string>, finalText: string) => void;
   onSwitchToFormView: () => void;
+  onSwitchToBulk?: () => void;
   onReturnToEdit: () => void;
 }
 
@@ -15,12 +16,14 @@ export const FillWizard: React.FC<FillWizardProps> = ({
   template,
   onSaveFillHistory,
   onSwitchToFormView,
+  onSwitchToBulk,
   onReturnToEdit,
 }) => {
   const uniqueBlanks = getUniqueBlankGroups(template.blanks);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [mobileTab, setMobileTab] = useState<'step' | 'preview'>('step');
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -301,53 +304,78 @@ export const FillWizard: React.FC<FillWizardProps> = ({
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', padding: '32px', maxWidth: '1440px', margin: '0 auto' }}>
+    <div className="fill-responsive-grid">
+      {/* Mobile Switcher Tab Bar */}
+      <div className="mobile-only" style={{ width: '100%', marginBottom: '4px' }}>
+        <div className="mobile-segmented-tabs">
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'step' ? 'active' : ''}`}
+            onClick={() => setMobileTab('step')}
+          >
+            Step {currentIndex + 1} of {uniqueBlanks.length}
+          </button>
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setMobileTab('preview')}
+          >
+            Document Preview
+          </button>
+        </div>
+      </div>
+
       {/* Left Column: Stage */}
-      <div className="workspace-panel animate-fade-in" style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+      <div className={`workspace-panel animate-fade-in no-print ${mobileTab !== 'step' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Progress Bar & Header */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#34d399', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Field {currentIndex + 1} of {uniqueBlanks.length}
             </span>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={onReturnToEdit}
                 className="btn-secondary"
-                style={{ height: '32px', padding: '0 12px', fontSize: '0.8rem' }}
                 title="Return to Interactive Workspace Editor"
               >
-                <IconArrowLeft size={14} /> Back to Edit
+                <IconArrowLeft size={14} /> Back
               </button>
               <button
                 onClick={handleAutofillSampleData}
                 className="btn-secondary"
-                style={{ height: '32px', padding: '0 12px', fontSize: '0.8rem' }}
                 title="Fill all fields with sample data for quick testing"
               >
-                <IconSparkles size={13} color="#fbbf24" /> Fill Sample Answers
+                <IconSparkles size={13} color="#fbbf24" /> Sample Data
               </button>
               <button
                 onClick={onSwitchToFormView}
                 className="btn-secondary"
-                style={{ height: '32px', padding: '0 12px', fontSize: '0.8rem' }}
               >
                 Form View
               </button>
+              {onSwitchToBulk && (
+                <button
+                  onClick={onSwitchToBulk}
+                  className="btn-secondary"
+                >
+                  Bulk Batch
+                </button>
+              )}
             </div>
           </div>
-          <div style={{ width: '100%', height: '8px', background: 'var(--bg-surface-elevated)', borderRadius: '4px', overflow: 'hidden' }}>
+          <div style={{ width: '100%', height: '6px', background: 'var(--bg-surface-elevated)', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{ width: `${progressPercent}%`, height: '100%', background: 'var(--accent-primary)', transition: 'width 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }} />
           </div>
         </div>
 
         {/* Display Prompt */}
-        <div style={{ marginTop: '8px' }}>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.85rem', fontWeight: 800, lineHeight: 1.2, marginBottom: '12px', letterSpacing: '-0.035em' }}>
+        <div style={{ marginTop: '4px' }}>
+          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.25rem, 3.5vw, 1.85rem)', fontWeight: 800, lineHeight: 1.2, marginBottom: '8px', letterSpacing: '-0.035em' }}>
             {currentBlank.helpText || `What is the ${currentBlank.label}?`}
           </h2>
           {currentBlank.required && (
-            <span style={{ fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.15)', padding: '3px 10px', borderRadius: 'var(--radius-full)', fontWeight: 600, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.15)', padding: '2px 8px', borderRadius: 'var(--radius-full)', fontWeight: 600, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
               Required Field
             </span>
           )}
@@ -360,18 +388,18 @@ export const FillWizard: React.FC<FillWizardProps> = ({
 
         {/* Keyboard hint */}
         <div style={{ fontSize: '0.8125rem', color: 'var(--text-dim)' }}>
-          Press <kbd style={{ background: '#1e293b', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontWeight: 600 }}>Enter ↵</kbd> to proceed to next field.
+          Press <kbd style={{ background: '#1e293b', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-subtle)', color: 'var(--text-main)', fontWeight: 600 }}>Enter ↵</kbd> to proceed to next field.
         </div>
 
         {/* Navigation Footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
           <button
             onClick={handleBack}
             disabled={currentIndex === 0}
             className="btn-secondary"
             style={{
-              padding: '12px 20px',
-              fontSize: '0.9rem',
+              padding: '10px 18px',
+              fontSize: '0.875rem',
               opacity: currentIndex === 0 ? 0.3 : 1,
               cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
               display: 'flex',
@@ -391,8 +419,8 @@ export const FillWizard: React.FC<FillWizardProps> = ({
               onClick={handleNext}
               className="btn-primary"
               style={{
-                padding: '12px 24px',
-                fontSize: '0.9rem',
+                padding: '10px 20px',
+                fontSize: '0.875rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
@@ -405,25 +433,26 @@ export const FillWizard: React.FC<FillWizardProps> = ({
               onClick={() => {
                 const assembled = replaceBlanksInText(template.bodyText, template.blanks, values, { formatValues: true });
                 onSaveFillHistory(values, assembled);
+                setMobileTab('preview');
               }}
               className="btn-primary"
               style={{
-                padding: '12px 24px',
-                fontSize: '0.9rem',
+                padding: '10px 20px',
+                fontSize: '0.875rem',
                 background: '#10b981',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
               }}
             >
-              <IconCheck size={16} /> Finish & Save Document
+              <IconCheck size={16} /> Finish Document
             </button>
           )}
         </div>
       </div>
 
       {/* Right Column: Live Document Preview */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className={`animate-fade-in ${mobileTab !== 'preview' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <LivePreview
           template={template}
           values={values}

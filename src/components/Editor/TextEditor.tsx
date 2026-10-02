@@ -148,6 +148,19 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const [showGuideBanner, setShowGuideBanner] = useState<boolean>(true);
   const [showSaveToast, setShowSaveToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('Template updated & saved successfully!');
+  const [mobileTab, setMobileTab] = useState<'canvas' | 'blanks'>('canvas');
+
+  const handleInsertBlankAtEnd = (blankId: string, blankLabel: string) => {
+    const token = `[[${blankId}]]`;
+    const newBody = activeTemplate.bodyText ? `${activeTemplate.bodyText} ${token}` : token;
+    commitUpdate({
+      ...activeTemplate,
+      bodyText: newBody,
+    });
+    setToastMessage(`Inserted "${blankLabel}" into document!`);
+    setShowSaveToast(true);
+    setTimeout(() => setShowSaveToast(false), 2400);
+  };
 
   // Merged drag state — single setState call per dragover event instead of three.
   const [dragState, setDragState] = useState<{ dragging: boolean; hovered: boolean; slot: number }>(
@@ -608,22 +621,24 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '32px', maxWidth: '1440px', margin: '0 auto', position: 'relative' }}>
+    <div className="page-container" style={{ position: 'relative' }}>
       {/* Notification Toast */}
       {showSaveToast && (
-        <div className="workspace-panel animate-fade-in" style={{
+        <div className="workspace-panel animate-fade-in no-print" style={{
           position: 'fixed',
-          top: '80px',
-          right: '32px',
+          bottom: '20px',
+          right: '20px',
           zIndex: 100,
           background: 'var(--bg-surface-elevated)',
           borderColor: 'var(--accent-primary)',
-          padding: '12px 20px',
+          padding: '12px 18px',
           color: '#ffffff',
           fontWeight: 500,
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          maxWidth: 'calc(100vw - 40px)',
         }}>
           <IconCheck size={18} color="var(--accent-primary)" /> {toastMessage}
         </div>
@@ -632,22 +647,22 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       {/* Top Section Stack */}
       {/* Onboarding Guidance Banner */}
       {showGuideBanner && (
-        <div className="workspace-panel animate-fade-in" style={{
-          padding: '16px 22px',
+        <div className="workspace-panel animate-fade-in no-print" style={{
           background: 'var(--bg-surface-elevated)',
           display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
+          gap: '12px',
         }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: '0.925rem', color: '#ffffff', fontFamily: 'var(--font-heading)', letterSpacing: '-0.01em' }}>
               Workflow: Create an interactive template
             </div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span>1. Drag fields from Defined Blanks into document</span>
+            <div style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+              <span>1. Drag or insert fields into document</span>
               <span>•</span>
-              <span>2. Drag chips within document to rearrange positions</span>
+              <span>2. Arrange positions or edit text directly</span>
               <span>•</span>
               <span>3. Click Update Template or Proceed to Fill</span>
             </div>
@@ -663,12 +678,12 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       )}
 
       {/* Template Title & Primary Action Toolbar */}
-      <div className="workspace-panel workspace-panel-hover" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div className="workspace-panel workspace-panel-hover no-print" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+        <div style={{ flex: '1 1 280px', display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-            Template Title:
+            Title:
           </span>
-          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
             <input
               type="text"
               value={activeTemplate.name}
@@ -679,8 +694,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                 background: 'transparent',
                 border: '1px solid transparent',
                 borderRadius: 'var(--radius-sm)',
-                padding: '4px 8px',
-                fontSize: '1.35rem',
+                padding: '4px 6px',
+                fontSize: 'clamp(1.1rem, 2.5vw, 1.35rem)',
                 fontWeight: 800,
                 fontFamily: 'var(--font-heading)',
                 color: '#ffffff',
@@ -698,8 +713,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                 e.target.style.background = 'transparent';
               }}
             />
-            <span style={{ marginLeft: '-28px', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
-              <IconEdit size={16} color="var(--text-muted)" />
+            <span style={{ marginLeft: '-24px', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+              <IconEdit size={15} color="var(--text-muted)" />
             </span>
           </div>
 
@@ -708,11 +723,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               onClick={onOpenSamples}
               className="btn-secondary"
               style={{
-                padding: '6px 12px',
-                fontSize: '0.8rem',
+                padding: '0 10px',
+                fontSize: '0.785rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '4px',
                 whiteSpace: 'nowrap',
                 background: 'var(--bg-dark)',
                 border: '1px solid var(--border-subtle)',
@@ -725,7 +740,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         </div>
 
         {/* Primary Action Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <button
             onClick={handleExplicitUpdateTemplate}
             className="btn-primary"
@@ -761,7 +776,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             <IconRefresh size={14} />
           </button>
 
-          <div style={{ width: '1px', height: '18px', background: 'var(--border-subtle)', margin: '0 4px' }} />
+          <div style={{ width: '1px', height: '18px', background: 'var(--border-subtle)', margin: '0 2px' }} />
 
           <button
             onClick={handleUndo}
@@ -773,7 +788,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               cursor: canUndo ? 'pointer' : 'not-allowed',
             }}
           >
-            <IconUndo size={14} /> Undo
+            <IconUndo size={14} />
           </button>
 
           <button
@@ -786,22 +801,24 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               cursor: canRedo ? 'pointer' : 'not-allowed',
             }}
           >
-            <IconRedo size={14} /> Redo
+            <IconRedo size={14} />
           </button>
         </div>
       </div>
 
       {/* Text Selection Floating Toolbar */}
       {selectedSpan && (
-        <div className="workspace-panel animate-fade-in" style={{
-          padding: '14px 22px',
+        <div className="workspace-panel animate-fade-in no-print" style={{
+          padding: '12px 18px',
           background: 'var(--bg-surface-elevated)',
           border: '1px solid var(--accent-primary)',
           display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '8px',
         }}>
-          <div style={{ fontSize: '0.9rem', color: '#f8fafc' }}>
+          <div style={{ fontSize: '0.875rem', color: '#f8fafc' }}>
             Selected text: <strong style={{ color: '#ffffff' }}>"{selectedSpan}"</strong>
           </div>
           <button
@@ -813,10 +830,30 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         </div>
       )}
 
-      {/* Height-Responsive Grid Row: Single Unified Interactive Template Workspace & Defined Blanks Panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '28px', alignItems: 'stretch' }}>
+      {/* Mobile Mode Switcher (Canvas vs Blanks) */}
+      <div className="mobile-only no-print">
+        <div className="mobile-segmented-tabs">
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'canvas' ? 'active' : ''}`}
+            onClick={() => setMobileTab('canvas')}
+          >
+            Document Canvas
+          </button>
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'blanks' ? 'active' : ''}`}
+            onClick={() => setMobileTab('blanks')}
+          >
+            Defined Blanks ({activeTemplate.blanks.length})
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile-First Grid: Single Unified Workspace & Defined Blanks Panel */}
+      <div className="editor-responsive-grid no-print">
         {/* Left: Single Unified Interactive Template Workspace Card */}
-        <div className="workspace-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className={`workspace-panel ${mobileTab !== 'canvas' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
@@ -886,8 +923,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
         </div>
 
         {/* Right: Height-Responsive Single Source of Truth Defined Blanks Panel */}
-        <div className="workspace-panel" style={{
-          padding: '24px',
+        <div className={`workspace-panel ${mobileTab !== 'blanks' ? 'hide-on-mobile' : ''}`} style={{
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
@@ -897,7 +933,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.15rem', fontWeight: 800 }}>
                 Defined Blanks ({activeTemplate.blanks.length})
               </h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Drag fields into document canvas</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Drag or tap + Insert into document</p>
             </div>
             <button
               onClick={() => {
@@ -977,9 +1013,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                     e.currentTarget.style.borderColor = 'var(--border-subtle)';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
-                  title="Drag and drop field onto exact document text position"
+                  title="Drag and drop or tap + Insert to add into document"
                 >
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem', cursor: 'grab' }} title="Drag handle">:::</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: '0.875rem', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -994,7 +1030,19 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleInsertBlankAtEnd(b.id, b.label);
+                      }}
+                      className="btn-secondary"
+                      style={{ height: '28px', padding: '0 8px', fontSize: '0.725rem' }}
+                      title="Insert field into document"
+                    >
+                      + Insert
+                    </button>
                     <button
                       onClick={() => {
                         setEditingBlank(b);
@@ -1049,7 +1097,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
       {/* Refined Auto-Detect Drawer */}
       {showAutoDetectDrawer && (
-        <div style={{
+        <div className="no-print" style={{
           position: 'fixed',
           inset: 0,
           background: 'rgba(0, 0, 0, 0.8)',
@@ -1059,10 +1107,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
           zIndex: 100,
         }}>
           <div className="workspace-panel animate-fade-in" style={{
-            width: '480px',
+            width: '100%',
+            maxWidth: '480px',
             height: '100%',
             background: 'var(--bg-surface)',
-            padding: '28px',
+            padding: 'var(--space-panel)',
             borderRadius: 0,
             display: 'flex',
             flexDirection: 'column',
@@ -1157,6 +1206,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
           </div>
         </div>
       )}
+
+      {/* Dedicated Print Output Body for Clean Page Output (Hidden on screen, pure output in print) */}
+      <div className="print-only print-document-body">
+        {toHumanReadableRawText(activeTemplate.bodyText, activeTemplate.blanks)}
+      </div>
     </div>
   );
 };

@@ -8,6 +8,7 @@ interface FormViewProps {
   template: Template;
   onSaveFillHistory: (values: Record<string, string>, finalText: string) => void;
   onSwitchToWizard: () => void;
+  onSwitchToBulk?: () => void;
   onReturnToEdit: () => void;
 }
 
@@ -15,10 +16,12 @@ export const FormView: React.FC<FormViewProps> = ({
   template,
   onSaveFillHistory,
   onSwitchToWizard,
+  onSwitchToBulk,
   onReturnToEdit,
 }) => {
   const uniqueBlanks = getUniqueBlankGroups(template.blanks);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [mobileTab, setMobileTab] = useState<'form' | 'preview'>('form');
 
   useEffect(() => {
     const initial: Record<string, string> = {};
@@ -41,43 +44,76 @@ export const FormView: React.FC<FormViewProps> = ({
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px', padding: '32px', maxWidth: '1440px', margin: '0 auto' }}>
+    <div className="fill-responsive-grid">
+      {/* Mobile Switcher Tab Bar */}
+      <div className="mobile-only" style={{ width: '100%', marginBottom: '4px' }}>
+        <div className="mobile-segmented-tabs">
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'form' ? 'active' : ''}`}
+            onClick={() => setMobileTab('form')}
+          >
+            Form Fields ({uniqueBlanks.length})
+          </button>
+          <button
+            type="button"
+            className={`mobile-segmented-tab ${mobileTab === 'preview' ? 'active' : ''}`}
+            onClick={() => setMobileTab('preview')}
+          >
+            Document Preview
+          </button>
+        </div>
+      </div>
+
       {/* Left Column: Scrollable Multi-field Form */}
-      <div className="workspace-panel animate-fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        className={`workspace-panel animate-fade-in no-print ${mobileTab !== 'form' ? 'hide-on-mobile' : ''}`}
+        style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}
+      >
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
           <div>
-            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.035em' }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, letterSpacing: '-0.035em' }}>
               Full Interactive Form View
             </h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Fill all document fields on a single scrollable form</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+              Fill all document fields on a single scrollable form
+            </p>
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={onReturnToEdit}
               className="btn-secondary"
               title="Return to Interactive Workspace Editor"
             >
-              <IconArrowLeft size={14} /> Back to Edit
+              <IconArrowLeft size={14} /> Back
             </button>
             <button
               onClick={onSwitchToWizard}
               className="btn-secondary"
             >
-              <IconSparkles size={13} /> Conversational Wizard
+              <IconSparkles size={13} /> Wizard
             </button>
+            {onSwitchToBulk && (
+              <button
+                onClick={onSwitchToBulk}
+                className="btn-secondary"
+              >
+                Bulk Batch
+              </button>
+            )}
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
           {uniqueBlanks.map((b) => {
             const val = values[b.id] || '';
             return (
-              <div key={b.id} style={{ background: 'var(--bg-dark)', padding: '18px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                <label style={{ display: 'block', fontSize: '0.925rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '6px', fontFamily: 'var(--font-heading)' }}>
+              <div key={b.id} style={{ background: 'var(--bg-dark)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px', fontFamily: 'var(--font-heading)' }}>
                   {b.label} {b.required && <span style={{ color: '#ef4444' }}>*</span>}
                 </label>
                 {b.helpText && (
-                  <div style={{ fontSize: '0.775rem', color: 'var(--text-dim)', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
                     {b.helpText}
                   </div>
                 )}
@@ -98,7 +134,7 @@ export const FormView: React.FC<FormViewProps> = ({
                   />
                 ) : b.type === 'currency' ? (
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#818cf8', fontWeight: 800 }}>
+                    <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#818cf8', fontWeight: 800 }}>
                       ₹
                     </span>
                     <input
@@ -107,7 +143,7 @@ export const FormView: React.FC<FormViewProps> = ({
                       onChange={(e) => handleChangeValue(b.id, b.label, e.target.value)}
                       placeholder="e.g. 10,000"
                       className="workspace-input"
-                      style={{ paddingLeft: '40px' }}
+                      style={{ paddingLeft: '36px' }}
                     />
                   </div>
                 ) : b.type === 'dropdown' ? (
@@ -159,7 +195,7 @@ export const FormView: React.FC<FormViewProps> = ({
       </div>
 
       {/* Right Column: Live Document Preview */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div className={`animate-fade-in ${mobileTab !== 'preview' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <LivePreview
           template={template}
           values={values}
@@ -170,3 +206,5 @@ export const FormView: React.FC<FormViewProps> = ({
     </div>
   );
 };
+
+export default FormView;

@@ -1,4 +1,4 @@
-/* Design Read: Fillify document workstation will feature a high-contrast minimalist language — true off-black background (#09090b), solid zinc surfaces (#18181b), crisp 1px borders (#27272a), and a Cobalt Blue accent (#2563eb). */
+/* Design Read: Fillify document workstation with mobile-first layout architecture — high-contrast minimalist zinc palette, thumb-accessible tap targets, fluid single-column mobile viewports, responsive segmented controls, and desktop multi-column expansion. */
 
 :root {
   --bg-dark: #09090b;
@@ -30,12 +30,34 @@
   --font-heading: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+  /* Responsive Spacing Tokens */
+  --space-page-x: 12px;
+  --space-page-y: 12px;
+  --space-panel: 16px;
+}
+
+@media screen and (min-width: 640px) {
+  :root {
+    --space-page-x: 20px;
+    --space-page-y: 20px;
+    --space-panel: 24px;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  :root {
+    --space-page-x: 32px;
+    --space-page-y: 28px;
+    --space-panel: 32px;
+  }
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -45,6 +67,7 @@ html, body {
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 button, input, select, textarea {
@@ -52,11 +75,35 @@ button, input, select, textarea {
   color: inherit;
 }
 
+/* Base Responsive Page Container */
+.page-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: var(--space-page-y) var(--space-page-x);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media screen and (min-width: 640px) {
+  .page-container {
+    gap: 20px;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .page-container {
+    gap: 24px;
+  }
+}
+
 /* Solid Workspace Panel */
 .workspace-panel {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
+  padding: var(--space-panel);
   transition: border-color 0.15s ease;
 }
 
@@ -81,8 +128,8 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px;
-  margin: 0 4px;
+  padding: 4px 9px;
+  margin: 2px 4px;
   background: var(--blank-chip-bg);
   border: 1px solid var(--blank-chip-border);
   color: var(--blank-chip-text);
@@ -91,10 +138,11 @@ p {
   font-weight: 500;
   cursor: pointer;
   user-select: none;
+  touch-action: manipulation;
   transition: all 0.1s ease;
 }
 
-.blank-chip:hover {
+.blank-chip:hover, .blank-chip:active {
   background: var(--bg-surface-hover);
   border-color: var(--accent-primary);
   color: var(--text-main);
@@ -125,11 +173,12 @@ p {
   border-color: var(--border-focus);
 }
 
-/* Buttons - Unified 32px Height System */
+/* Touch-Accessible Buttons System */
 .btn-primary,
 .btn-secondary,
 .icon-btn {
-  height: 32px;
+  min-height: 36px;
+  height: 36px;
   font-size: 0.8125rem;
   font-weight: 600;
   font-family: var(--font-heading);
@@ -141,7 +190,17 @@ p {
   box-sizing: border-box;
   white-space: nowrap;
   cursor: pointer;
+  touch-action: manipulation;
   transition: all 0.12s ease;
+}
+
+@media screen and (min-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .icon-btn {
+    min-height: 32px;
+    height: 32px;
+  }
 }
 
 .btn-primary {
@@ -151,7 +210,7 @@ p {
   color: #ffffff;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:active {
   background: var(--accent-primary-hover);
   border-color: var(--accent-primary-hover);
 }
@@ -163,35 +222,202 @@ p {
   color: var(--text-main);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover, .btn-secondary:active {
   background: var(--border-subtle);
   border-color: var(--border-medium);
 }
 
 .icon-btn {
-  width: 32px;
+  width: 36px;
+  min-width: 36px;
   padding: 0;
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-muted);
 }
 
-.icon-btn:hover {
+@media screen and (min-width: 768px) {
+  .icon-btn {
+    width: 32px;
+    min-width: 32px;
+  }
+}
+
+.icon-btn:hover, .icon-btn:active {
   background: var(--bg-surface-elevated);
   color: var(--text-main);
 }
 
+/* Responsive Mobile Switcher Tab Bar */
+.mobile-segmented-tabs {
+  display: flex;
+  background: var(--bg-surface-elevated);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  gap: 4px;
+  width: 100%;
+}
+
+.mobile-segmented-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: calc(var(--radius-sm) - 1px);
+  font-size: 0.825rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.12s ease;
+}
+
+.mobile-segmented-tab.active {
+  background: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Grid Layouts - Mobile First */
+
+/* Editor Layout: 1 col on mobile, 2 col on desktop */
+.editor-responsive-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media screen and (min-width: 1024px) {
+  .editor-responsive-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 28px;
+  }
+}
+
+/* Fill Wizard & Form Split Layout: 1 col on mobile, 2 col on desktop */
+.fill-responsive-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-page-y) var(--space-page-x);
+}
+
+@media screen and (min-width: 1024px) {
+  .fill-responsive-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+    padding: var(--space-page-y) var(--space-page-x);
+  }
+}
+
+/* Bulk Generator Split Layout */
+.bulk-responsive-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media screen and (min-width: 1100px) {
+  .bulk-responsive-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+}
+
+/* Live Preview Action Buttons: stack on mobile, 3 cols on tablet/desktop */
+.preview-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media screen and (min-width: 640px) {
+  .preview-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 24px;
+  }
+}
+
+/* Responsive Modal Card */
+.modal-responsive-card {
+  width: 100%;
+  max-width: 100%;
+  max-height: 90vh;
+  background: var(--bg-surface);
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+@media screen and (min-width: 640px) {
+  .modal-responsive-card {
+    padding: 32px;
+  }
+}
+
+/* Visibility Utilities */
+.mobile-only {
+  display: block;
+}
+
+@media screen and (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 1023px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  display: none !important;
+}
+
+@media screen and (min-width: 640px) {
+  .desktop-only {
+    display: inline-flex !important;
+  }
+}
+
+/* Screen default: print-only elements are completely hidden on screen */
+.print-only {
+  display: none !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-dark);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-subtle);
-  border-radius: 0;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-medium);
@@ -207,32 +433,119 @@ p {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
-/* Print Override */
+/* ─────────────────────────────────────────────────────────────
+   PRINT SYSTEM OVERRIDE
+   Clean, foolproof print engine for single & batch documents.
+───────────────────────────────────────────────────────────── */
 @media print {
-  body * {
+  /* 1. Hide all non-printable UI: navbar, headers, form controls, buttons, toolbars, dialogs */
+  .no-print,
+  .no-print *,
+  header,
+  nav,
+  button,
+  input,
+  textarea,
+  select,
+  .mobile-only,
+  .mobile-segmented-tabs,
+  .preview-actions-grid {
+    display: none !important;
     visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
-  
-  .print-document-body,
-  .print-document-body * {
+
+  /* 2. Show dedicated print containers */
+  .print-only {
+    display: block !important;
     visibility: visible !important;
   }
-  
-  .print-document-body {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
+
+  /* 3. Reset document canvas, background, and text colors */
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     margin: 0 !important;
-    padding: 15mm !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 4. Neutralize all layout wrapper constraints so printed text flows and paginates naturally */
+  #root,
+  #root > div,
+  main,
+  .page-container,
+  .fill-responsive-grid,
+  .bulk-responsive-grid,
+  .editor-responsive-grid,
+  .workspace-panel {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  /* 5. Single document output formatting */
+  .print-document-body {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8mm 10mm !important;
     background: #ffffff !important;
     color: #000000 !important;
     font-family: 'Georgia', 'Times New Roman', serif !important;
     font-size: 12pt !important;
-    line-height: 1.65 !important;
+    line-height: 1.7 !important;
     white-space: pre-wrap !important;
-    box-shadow: none !important;
-    border: none !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  /* 6. Multi-document bulk batch print with clean page breaks */
+  .bulk-print-page {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 8mm 10mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Georgia', 'Times New Roman', serif !important;
+    font-size: 12pt !important;
+    line-height: 1.7 !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .bulk-print-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
   }
 
   @page {
@@ -240,4 +553,3 @@ p {
     size: auto;
   }
 }
-

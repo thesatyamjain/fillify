@@ -180,19 +180,41 @@ export function getSavedTemplates(): Template[] {
       saveAllTemplates(seed);
       return seed;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return [...SAMPLE_TEMPLATES];
+    }
+    return parsed;
   } catch (e) {
     console.error('Failed to parse saved templates:', e);
     return [...SAMPLE_TEMPLATES]; // return a copy so callers can't mutate the constant
   }
 }
 
-export function saveAllTemplates(templates: Template[]): void {
+function safeSetItem(key: string, value: string): boolean {
   try {
-    localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(templates));
+    localStorage.setItem(key, value);
+    return true;
   } catch (e) {
-    console.error('Failed to save templates to localStorage:', e);
+    if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
+      console.warn('Storage quota exceeded. Pruning history to recover space.');
+      try {
+        const history = getFilledHistory().slice(0, 10);
+        localStorage.setItem(STORAGE_KEYS.FILLED_HISTORY, JSON.stringify(history));
+        localStorage.setItem(key, value);
+        return true;
+      } catch (retryErr) {
+        console.error('Failed to recover storage quota:', retryErr);
+        return false;
+      }
+    }
+    console.error(`Failed to write to localStorage for key ${key}:`, e);
+    return false;
   }
+}
+
+export function saveAllTemplates(templates: Template[]): void {
+  safeSetItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(templates));
 }
 
 export function saveTemplate(template: Template): Template[] {
@@ -220,7 +242,9 @@ export function deleteTemplate(id: string): Template[] {
 export function getFilledHistory(): FilledInstance[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.FILLED_HISTORY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -230,13 +254,27 @@ export function saveFilledInstance(instance: FilledInstance): FilledInstance[] {
   try {
     const history = getFilledHistory();
     const updated = [instance, ...history.filter(h => h.id !== instance.id)].slice(0, 50); // Keep last 50
-    localStorage.setItem(STORAGE_KEYS.FILLED_HISTORY, JSON.stringify(updated));
+    safeSetItem(STORAGE_KEYS.FILLED_HISTORY, JSON.stringify(updated));
     return updated;
   } catch (e) {
     console.error('Failed to save fill history:', e);
     return [];
   }
 }
+
+export function saveMultipleFilledInstances(instances: FilledInstance[]): FilledInstance[] {
+  try {
+    const history = getFilledHistory();
+    const newIds = new Set(instances.map(i => i.id));
+    const updated = [...instances, ...history.filter(h => !newIds.has(h.id))].slice(0, 100);
+    safeSetItem(STORAGE_KEYS.FILLED_HISTORY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.error('Failed to save batch fill history:', e);
+    return [];
+  }
+}
+
 
 export function exportTemplatesJSON(templates: Template[]): string {
   return JSON.stringify(templates, null, 2);

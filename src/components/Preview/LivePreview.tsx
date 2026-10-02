@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Template } from '../../types/template';
 import { replaceBlanksInText } from '../../utils/templateParser';
 import { IconCopy, IconCheck, IconPrint, IconDownload, IconEdit, IconRefresh } from '../Icons';
+import { useToast } from '../../context/ToastContext';
+import { copyToClipboard } from '../../utils/clipboard';
 
 interface LivePreviewProps {
   template: Template;
@@ -16,8 +18,8 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
   onSaveFillHistory,
   onResetValues,
 }) => {
+  const { showToast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [showToast, setShowToast] = useState(false);
   const [isEditingInline, setIsEditingInline] = useState(false);
   const [editedText, setEditedText] = useState('');
 
@@ -30,16 +32,12 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
   const finalTextToUse = isEditingInline ? editedText : assembledText;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(finalTextToUse);
+    const success = await copyToClipboard(finalTextToUse);
+    if (success) {
       setCopied(true);
-      setShowToast(true);
+      showToast('Copied to clipboard. Ready to paste.');
       onSaveFillHistory(values, finalTextToUse);
       setTimeout(() => setCopied(false), 2200);
-      setTimeout(() => setShowToast(false), 3000);
-    } catch {
-      // Clipboard API unavailable (non-HTTPS or blocked) — silent fail, no false feedback.
-      console.warn('Clipboard write failed.');
     }
   };
 
@@ -51,7 +49,6 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
     element.download = `${template.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_filled.txt`;
     document.body.appendChild(element);
     element.click();
-    // Give the browser time to initiate the download before revoking.
     setTimeout(() => {
       document.body.removeChild(element);
       URL.revokeObjectURL(url);
@@ -65,34 +62,11 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
   };
 
   return (
-    <div className="workspace-panel animate-fade-in" style={{ padding: '32px', display: 'flex', flexDirection: 'column', height: '100%', minHeight: '620px', position: 'relative' }}>
-      {/* Toast Notification (Zero Emojis) */}
-      {showToast && (
-        <div className="animate-fade-in" style={{
-          position: 'absolute',
-          bottom: '84px',
-          right: '32px',
-          background: 'var(--bg-surface-elevated)',
-          border: '1px solid var(--accent-primary)',
-          color: '#ffffff',
-          padding: '10px 18px',
-          borderRadius: 'var(--radius-md)',
-          fontWeight: 500,
-          fontSize: '0.875rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          zIndex: 50,
-        }}>
-          <IconCheck size={16} color="var(--accent-primary)" />
-          <span>Copied to Clipboard. Ready to paste.</span>
-        </div>
-      )}
-
+    <div className="workspace-panel animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '380px', position: 'relative' }}>
       {/* Header & Mode Toggles */}
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+      <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
         <div>
-          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
+          <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: 600, letterSpacing: '-0.02em' }}>
             Live Assembled Document
           </h3>
           <div style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
@@ -100,7 +74,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <button
             onClick={() => setIsEditingInline(!isEditingInline)}
             style={{
@@ -117,7 +91,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
               gap: '6px',
             }}
           >
-            <IconEdit size={13} /> {isEditingInline ? 'Done Tweaking' : 'Free-Text Tweak'}
+            <IconEdit size={13} /> {isEditingInline ? 'Done' : 'Tweak'}
           </button>
           <button
             onClick={onResetValues}
@@ -135,36 +109,36 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
               gap: '6px',
             }}
           >
-            <IconRefresh size={13} /> Fill Again
+            <IconRefresh size={13} /> Reset
           </button>
         </div>
       </div>
 
-      {/* Main Document View Canvas */}
+      {/* Main Document View Canvas (Screen Only) */}
       <div
-        className="print-only-container"
+        className="no-print"
         style={{
           background: 'var(--bg-dark)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-sm)',
-          padding: '28px',
+          padding: 'var(--space-panel)',
           flex: 1,
           overflowY: 'auto',
-          minHeight: '360px',
+          minHeight: '260px',
         }}
       >
         {isEditingInline ? (
           <textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
-            rows={16}
+            rows={14}
             style={{
               width: '100%',
               height: '100%',
               background: 'transparent',
               border: 'none',
               color: '#ffffff',
-              fontSize: '0.975rem',
+              fontSize: '0.95rem',
               lineHeight: 1.75,
               outline: 'none',
               resize: 'none',
@@ -172,32 +146,38 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
             }}
           />
         ) : (
-          <div className="print-document-body" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.85, fontSize: '0.975rem', color: '#f8fafc' }}>
+          <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.85, fontSize: '0.95rem', color: '#f8fafc' }}>
             {finalTextToUse}
           </div>
         )}
       </div>
 
-      {/* Export Action Toolbar */}
-      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px', marginTop: '24px' }}>
+      {/* Dedicated Print Output Body (Hidden on screen, pure output in print) */}
+      <div className="print-only print-document-body">
+        {finalTextToUse}
+      </div>
+
+      {/* Export Action Toolbar - Mobile First Responsive Grid */}
+      <div className="no-print preview-actions-grid">
         <button
           onClick={handleCopy}
           className="btn-primary"
           style={{
             background: copied ? 'var(--bg-surface-elevated)' : 'var(--accent-primary)',
             borderColor: copied ? 'var(--border-subtle)' : 'var(--accent-primary)',
-            padding: '14px',
-            fontSize: '0.925rem',
+            padding: '12px 14px',
+            fontSize: '0.875rem',
+            height: '42px',
           }}
         >
           {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
-          {copied ? 'Copied!' : 'Copy to Clipboard'}
+          {copied ? 'Copied!' : 'Copy Document'}
         </button>
 
         <button
           onClick={handlePrint}
           className="btn-secondary"
-          style={{ padding: '14px', fontSize: '0.925rem', justifyContent: 'center' }}
+          style={{ padding: '12px 14px', fontSize: '0.875rem', justifyContent: 'center', height: '42px' }}
         >
           <IconPrint size={16} /> Print Document
         </button>
@@ -205,7 +185,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         <button
           onClick={handleDownloadTxt}
           className="btn-secondary"
-          style={{ padding: '14px', fontSize: '0.925rem', justifyContent: 'center' }}
+          style={{ padding: '12px 14px', fontSize: '0.875rem', justifyContent: 'center', height: '42px' }}
         >
           <IconDownload size={16} /> Export .txt File
         </button>

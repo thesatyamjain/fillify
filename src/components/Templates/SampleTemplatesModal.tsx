@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Template } from '../../types/template';
 import { IconClose, IconTrash, IconArrowRight } from '../Icons';
+import { useModalDismiss } from '../../utils/useModalDismiss';
 
 interface SampleTemplatesModalProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  useModalDismiss(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -47,34 +50,36 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
   });
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.8)',
-      backdropFilter: 'blur(6px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 100,
-      padding: '20px',
-    }}>
-      <div className="workspace-panel animate-fade-in" style={{
-        width: '100%',
-        maxWidth: '780px',
-        maxHeight: '85vh',
-        background: 'var(--bg-surface)',
-        padding: '32px',
-        border: '1px solid var(--border-subtle)',
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="templates-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(6px)',
         display: 'flex',
-        flexDirection: 'column',
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: 'var(--space-page-x)',
+      }}
+    >
+      <div className="modal-responsive-card animate-fade-in" style={{ maxWidth: '780px' }}>
         {/* Modal Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', fontWeight: 800 }}>
+            <h3
+              id="templates-modal-title"
+              style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.2rem, 3vw, 1.4rem)', fontWeight: 800 }}
+            >
               Select Document Template
             </h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Choose a pre-configured sample or your saved custom templates</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Choose a pre-configured sample or your saved custom templates</p>
           </div>
           <button
             onClick={onClose}
@@ -126,7 +131,7 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
             No templates match your search query. Try clearing filters!
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
             {filteredTemplates.map((t) => (
               <div
                 key={t.id}

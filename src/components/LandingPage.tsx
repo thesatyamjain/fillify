@@ -107,7 +107,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 40px',
+        padding: '0 var(--space-page-x)',
         position: 'sticky',
         top: 0,
         background: 'rgba(9,9,11,0.9)',
@@ -143,7 +143,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        padding: '96px 24px 80px',
+        padding: 'clamp(48px, 10vw, 96px) var(--space-page-x) clamp(36px, 8vw, 80px)',
         position: 'relative',
       }}>
         {/* Background grid texture */}
@@ -252,7 +252,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* ── How it works ── */}
       <section style={{
-        padding: '0 24px 80px',
+        padding: '0 var(--space-page-x) clamp(40px, 8vw, 80px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -272,7 +272,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 key={step.num}
                 style={{
                   background: 'var(--bg-surface)',
-                  padding: '28px 22px',
+                  padding: '24px 20px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px',
@@ -298,20 +298,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* ── Features ── */}
       <section style={{
-        padding: '0 24px 100px',
+        padding: '0 var(--space-page-x) clamp(48px, 8vw, 100px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
       }}>
         <div style={{ maxWidth: '960px', width: '100%' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <h2 style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: 'clamp(1.5rem, 3vw, 2rem)',
+              fontSize: 'clamp(1.4rem, 3vw, 2rem)',
               fontWeight: 800,
               color: '#fff',
               letterSpacing: '-0.03em',
-              marginBottom: '12px',
+              marginBottom: '10px',
             }}>
               Everything you need, nothing you don't
             </h2>
@@ -322,7 +322,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
             gap: '1px',
             background: 'var(--border-subtle)',
             borderRadius: 'var(--radius-lg)',
@@ -334,7 +334,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 key={f.title}
                 style={{
                   background: 'var(--bg-surface)',
-                  padding: '28px 26px',
+                  padding: '24px 22px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '12px',
@@ -354,7 +354,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* ── CTA ── */}
       <section style={{
-        padding: '0 24px 96px',
+        padding: '0 var(--space-page-x) clamp(48px, 8vw, 96px)',
         display: 'flex',
         justifyContent: 'center',
       }}>
@@ -364,7 +364,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           background: 'var(--bg-surface)',
           border: '1px solid var(--border-medium)',
           borderRadius: 'var(--radius-lg)',
-          padding: '52px 40px',
+          padding: 'clamp(32px, 6vw, 52px) clamp(18px, 5vw, 40px)',
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
@@ -419,7 +419,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* ── Footer ── */}
       <footer style={{
         borderTop: '1px solid var(--border-subtle)',
-        padding: '20px 40px',
+        padding: '20px var(--space-page-x)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

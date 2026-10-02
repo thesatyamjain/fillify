@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FilledInstance } from '../../types/template';
 import { IconCopy, IconCheck, IconClose } from '../Icons';
+import { useModalDismiss } from '../../utils/useModalDismiss';
+import { copyToClipboard } from '../../utils/clipboard';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -15,46 +17,48 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  useModalDismiss(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const handleCopy = async (item: FilledInstance) => {
-    try {
-      await navigator.clipboard.writeText(item.finalText);
+    const success = await copyToClipboard(item.finalText);
+    if (success) {
       setCopiedId(item.id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      console.warn('Clipboard write failed.');
     }
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0, 0, 0, 0.8)',
-      backdropFilter: 'blur(6px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 100,
-      padding: '20px',
-    }}>
-      <div className="workspace-panel animate-fade-in" style={{
-        width: '100%',
-        maxWidth: '740px',
-        maxHeight: '85vh',
-        background: 'var(--bg-surface)',
-        padding: '32px',
-        border: '1px solid var(--border-subtle)',
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(6px)',
         display: 'flex',
-        flexDirection: 'column',
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: 'var(--space-page-x)',
+      }}
+    >
+      <div className="modal-responsive-card animate-fade-in" style={{ maxWidth: '740px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.3rem', fontWeight: 800 }}>
+            <h3
+              id="history-modal-title"
+              style={{ fontFamily: 'var(--font-heading)', fontSize: 'clamp(1.15rem, 3vw, 1.3rem)', fontWeight: 800 }}
+            >
               Filled Document History
             </h3>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Recently generated filled documents (Session Log)</p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Recently generated filled documents (Session Log)</p>
           </div>
           <button
             onClick={onClose}

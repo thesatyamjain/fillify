@@ -10,9 +10,10 @@ Fillify runs entirely in the browser. It parses standard placeholder conventions
 
 - **Automated Placeholder Detection**: Scans raw text for brackets `[Placeholder]`, angle brackets `<Field>`, parentheses `(Input)`, braces `{Variable}`, and underscore blanks `___`.
 - **Intelligent Field Typing**: Automatically infers appropriate field inputs—including single-line text, multi-line textareas, dates, numeric inputs, and currency—based on contextual field naming.
-- **Dual Filling Workflows**:
+- **Triple Filling Workflows**:
   - **Wizard Mode**: Guided step-by-step completion focused on one input at a time with rapid keyboard progression.
   - **Form Mode**: Comprehensive single-page form layout suited for rapid multi-field entry and review.
+  - **Bulk Batch Mode**: High-density spreadsheet data-grid and CSV/TSV import for batch mail-merging dozens of documents at once with multi-page print and export.
 - **Live Document Preview**: Real-time rendering with active highlight tracking showing exact substitution positions in the final output.
 - **Clean Export and Print Support**: Includes dedicated print styling that isolates the generated document and strips interface controls for physical printing or PDF export.
 - **Client-Side Persistence**: Stores templates and filled instance histories in browser `localStorage` for privacy and offline reliability.

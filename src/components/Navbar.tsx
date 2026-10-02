@@ -1,13 +1,15 @@
 import React, { useRef } from 'react';
 import { IconPlus, IconHistory, IconDownload, IconUpload } from './Icons';
+import { useTemplates } from '../context/TemplateContext';
+import { useFill } from '../context/FillContext';
 
 interface NavbarProps {
   activeMode: 'editor' | 'fill';
   setActiveMode: (mode: 'editor' | 'fill') => void;
-  onNewTemplate: () => void;
-  onOpenHistory: () => void;
-  onExportJSON: () => void;
-  onImportJSON: (jsonStr: string) => void;
+  onNewTemplate?: () => void;
+  onOpenHistory?: () => void;
+  onExportJSON?: () => void;
+  onImportJSON?: (jsonStr: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -19,6 +21,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   onImportJSON,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { createNewTemplate, exportTemplatesJSONFile, importTemplatesFromJSON } = useTemplates();
+  const { openHistoryModal } = useFill();
+
+  const handleNew = onNewTemplate || createNewTemplate;
+  const handleHistory = onOpenHistory || openHistoryModal;
+  const handleExport = onExportJSON || exportTemplatesJSONFile;
+  const handleImport = onImportJSON || importTemplatesFromJSON;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (content) {
-        onImportJSON(content);
+        handleImport(content);
       }
     };
     reader.readAsText(file);
@@ -36,54 +45,74 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="no-print" style={{
-      background: 'var(--bg-surface)',
-      borderBottom: '1px solid var(--border-subtle)',
-      padding: '14px 32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'sticky',
-      top: 0,
-      zIndex: 50,
-    }}>
+    <header
+      className="no-print"
+      style={{
+        background: 'var(--bg-surface)',
+        borderBottom: '1px solid var(--border-subtle)',
+        padding: '10px var(--space-page-x)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        gap: '8px',
+        width: '100%',
+      }}
+    >
       {/* Brand Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'var(--accent-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontWeight: 700,
-          fontSize: '1rem',
-          color: '#ffffff',
-          fontFamily: 'var(--font-heading)',
-        }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 0 }}>
+        <div
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--accent-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            fontSize: '0.9rem',
+            color: '#ffffff',
+            fontFamily: 'var(--font-heading)',
+            flexShrink: 0,
+          }}
+        >
           F
         </div>
-        <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-heading)',
+            fontWeight: 800,
+            fontSize: '1.1rem',
+            letterSpacing: '-0.03em',
+            color: '#ffffff',
+          }}
+        >
           Fillify
-        </div>
+        </span>
       </div>
 
-      {/* Clean 2-Step Mode Navigation */}
-      <div style={{
-        background: 'var(--bg-dark)',
-        padding: '4px',
-        borderRadius: 'var(--radius-sm)',
-        display: 'flex',
-        gap: '4px',
-        border: '1px solid var(--border-subtle)',
-      }}>
+      {/* 2-Step Mode Navigation - Touch-friendly Pill */}
+      <nav
+        aria-label="Workspace Mode"
+        style={{
+          background: 'var(--bg-dark)',
+          padding: '3px',
+          borderRadius: 'var(--radius-sm)',
+          display: 'flex',
+          gap: '2px',
+          border: '1px solid var(--border-subtle)',
+          flexShrink: 0,
+        }}
+      >
         <button
           onClick={() => setActiveMode('editor')}
           style={{
-            padding: '6px 16px',
+            padding: '5px 12px',
             borderRadius: 'calc(var(--radius-sm) - 1px)',
-            fontSize: '0.825rem',
+            fontSize: '0.8rem',
             fontWeight: 600,
             fontFamily: 'var(--font-heading)',
             border: 'none',
@@ -98,9 +127,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={() => setActiveMode('fill')}
           style={{
-            padding: '6px 16px',
+            padding: '5px 12px',
             borderRadius: 'calc(var(--radius-sm) - 1px)',
-            fontSize: '0.825rem',
+            fontSize: '0.8rem',
             fontWeight: 600,
             fontFamily: 'var(--font-heading)',
             border: 'none',
@@ -112,32 +141,36 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           Fill
         </button>
-      </div>
+      </nav>
 
       {/* Right Toolbar Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
         <button
-          onClick={onNewTemplate}
+          onClick={handleNew}
           className="btn-secondary"
           title="Create a fresh empty template"
+          style={{ padding: '0 8px', fontSize: '0.775rem' }}
         >
-          <IconPlus size={14} /> New
+          <IconPlus size={14} />
+          <span className="desktop-only">New</span>
         </button>
 
-        <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '16px', background: 'var(--border-subtle)', margin: '0 2px' }} />
 
         <button
-          onClick={onOpenHistory}
+          onClick={handleHistory}
           className="icon-btn"
-          title="History"
+          title="Session History"
+          aria-label="Session History"
         >
           <IconHistory size={16} />
         </button>
 
         <button
-          onClick={onExportJSON}
+          onClick={handleExport}
           className="icon-btn"
           title="Export JSON"
+          aria-label="Export JSON"
         >
           <IconDownload size={16} />
         </button>
@@ -146,6 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => fileInputRef.current?.click()}
           className="icon-btn"
           title="Import JSON"
+          aria-label="Import JSON"
         >
           <IconUpload size={16} />
         </button>
