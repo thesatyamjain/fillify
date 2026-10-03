@@ -1,5 +1,5 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: GitHub Discussions
     url: https://github.com/your-username/fillify/discussions
-    about: Ask questions, discuss ideas, or share custom templates with the community.
+    about: Ask questions, share templates, or brainstorm ideas.

@@ -1,31 +1,30 @@
 ## Description
 
-Briefly describe the change and rationale behind it. Mention any related issue numbers (e.g. `Fixes #123` or `Closes #456`).
+Provide a clear and concise summary of the changes proposed in this Pull Request.
+
+Fixes #(issue)
 
 ## Type of Change
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
-- [ ] Code refactor or performance improvement
+- [ ] UI/UX polish or accessibility improvement
+- [ ] Performance optimization
 - [ ] Documentation update
-- [ ] Build configuration or tooling update
+- [ ] Refactoring (no functional changes)
 
-## Changes Made
+## Verification Checklist
 
-- Detail item 1
-- Detail item 2
+Please verify the following checks before requesting a review:
 
-## Verification
+- [ ] My code adheres to the project's coding standards and design principles.
+- [ ] I have executed `npm test` and all 27+ automated tests pass without errors.
+- [ ] I have executed `npm run typecheck` (`tsc --noEmit`) and there are 0 type errors.
+- [ ] I have executed `npm run build` and production Vite bundling succeeds cleanly.
+- [ ] I have tested responsive layout on both desktop and mobile viewports.
+- [ ] I have verified print output if any changes touch document or preview views.
+- [ ] No unneeded dependencies have been added.
 
-Describe how you tested these changes:
+## Screenshots / Screen Recordings (if applicable)
 
-- [ ] `npm run build` succeeds cleanly without TypeScript errors
-- [ ] Manually tested affected user interaction workflows
-- [ ] Verified responsive layout behavior
-
-## Checklist
-
-- [ ] My code adheres to the existing coding style and formatting conventions
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] My changes generate no new warnings or TypeScript diagnostics
+If this change touches UI layout, please attach before/after screenshots or recordings.

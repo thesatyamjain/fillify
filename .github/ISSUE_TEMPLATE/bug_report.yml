@@ -6,53 +6,62 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting an issue with Fillify. Please provide as much context as possible.
-  - type: input
-    id: summary
+        Thanks for taking the time to report a bug! Please ensure you have tested the latest version before submitting.
+  - type: textarea
+    id: description
     attributes:
-      label: Summary
-      description: A clear and concise description of the bug.
-      placeholder: e.g. Cursor jumps to end of input when editing currency field
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the problem...
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: reproduction
     attributes:
       label: Steps to Reproduce
-      description: Detailed steps explaining how to trigger the issue.
+      description: Step-by-step instructions to reproduce the issue.
       placeholder: |
-        1. Open Template Editor
-        2. Paste text containing '[Date]'
-        3. Switch to Wizard Mode
-        4. Observe the unexpected behavior
+        1. Open Fillify at '...'
+        2. Paste template '...'
+        3. Click on '...'
+        4. See error
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
       label: Expected Behavior
-      description: What you expected to happen.
+      description: What did you expect to happen?
     validations:
       required: true
-  - type: textarea
-    id: actual
+  - type: dropdown
+    id: mode
     attributes:
-      label: Actual Behavior
-      description: What actually occurred.
+      label: Workspace Mode
+      description: In which mode did this issue occur?
+      options:
+        - Template Editor
+        - Wizard Mode
+        - Form Mode
+        - Bulk Spreadsheet Mode
+        - Live Preview / Print
+        - Import / Export JSON
     validations:
       required: true
   - type: input
-    id: environment
+    id: browser
     attributes:
-      label: Environment
-      description: Operating system, browser name, and browser version.
-      placeholder: e.g. Windows 11, Chrome 128
+      label: Browser & OS
+      description: e.g. Chrome 125 on Windows 11, Safari 17 on macOS Sonoma, Firefox on Android
+      placeholder: Chrome / Windows
     validations:
-      required: false
-  - type: textarea
-    id: additional-context
+      required: true
+  - type: checkboxes
+    id: checks
     attributes:
-      label: Additional Context
-      description: Add any error console logs or context about the template used.
-    validations:
-      required: false
+      label: Verification
+      options:
+        - label: I have verified this is not a duplicate of an existing issue.
+          required: true
+        - label: I have tested in an incognito/private browser window without extensions.
+          required: false

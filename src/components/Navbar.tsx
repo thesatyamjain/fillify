@@ -62,7 +62,29 @@ export const Navbar: React.FC<NavbarProps> = ({
       }}
     >
       {/* Brand Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 0 }}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setActiveMode('editor')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setActiveMode('editor');
+          }
+        }}
+        title="Fillify Home — Return to Editor"
+        aria-label="Fillify Home — Return to Template Editor"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          minWidth: 0,
+          flexShrink: 0,
+          cursor: 'pointer',
+          outline: 'none',
+          userSelect: 'none',
+        }}
+      >
         <div
           style={{
             width: '28px',
@@ -77,6 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             color: '#ffffff',
             fontFamily: 'var(--font-heading)',
             flexShrink: 0,
+            boxShadow: '0 2px 6px rgba(99, 102, 241, 0.3)',
           }}
         >
           F

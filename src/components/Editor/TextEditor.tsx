@@ -106,6 +106,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     onUpdateTemplate(updated);
   };
 
+  // Stable save callback ref for keyboard shortcuts and toolbar triggers
+  const saveRef = useRef<() => void>(() => {});
+
   // Keep a stable ref to the latest undo/redo state so we only register the listener once.
   const undoRedoRef = useRef({ canUndo, canRedo, undo, redo });
   useEffect(() => {
@@ -116,7 +119,11 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       const { canUndo: cu, canRedo: cr, undo: u, redo: r } = undoRedoRef.current;
       const isCmdOrCtrl = e.metaKey || e.ctrlKey;
-      if (isCmdOrCtrl && e.key.toLowerCase() === 'z') {
+
+      if (isCmdOrCtrl && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveRef.current();
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === 'z') {
         if (e.shiftKey) {
           if (cr) { e.preventDefault(); r(); }
         } else {
@@ -186,6 +193,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     setShowSaveToast(true);
     setTimeout(() => setShowSaveToast(false), 3000);
   };
+  saveRef.current = handleExplicitUpdateTemplate;
 
   const handleResetTemplate = () => {
     setIsResetConfirmOpen(true);

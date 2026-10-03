@@ -1,6 +1,13 @@
 {
-  "name": "Fillify",
+  "name": "Fillify — Text-to-Interactive-Form Utility",
   "short_name": "Fillify",
+  "description": "Transform raw text templates into interactive data-entry forms with bulk generation, clean print, and live preview.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#09090b",
+  "background_color": "#09090b",
   "icons": [
     {
       "src": "/favicon.svg",
@@ -8,8 +15,5 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#09090b",
-  "background_color": "#09090b",
-  "display": "standalone"
+  ]
 }

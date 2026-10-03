@@ -6,33 +6,34 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for suggesting an improvement for Fillify!
+        Have an idea to make Fillify better? We'd love to hear your proposal!
   - type: textarea
     id: problem
     attributes:
-      label: Problem Statement
-      description: Is your feature request related to a specific problem or friction point?
-      placeholder: e.g. I am frustrated when exporting large batches of templates because...
+      label: Problem or Motivation
+      description: Is your feature request related to a problem or limitation? Please describe.
+      placeholder: I'm always frustrated when...
     validations:
       required: true
   - type: textarea
-    id: proposed-solution
+    id: solution
     attributes:
       label: Proposed Solution
-      description: Describe the solution or workflow you would like to see implemented.
+      description: Describe the solution you'd like to see implemented.
+      placeholder: Add support for...
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives Considered
-      description: Describe any alternative solutions or workarounds you have considered.
-    validations:
-      required: false
-  - type: textarea
-    id: additional-context
+      description: Any alternative solutions or workarounds you have considered.
+  - type: checkboxes
+    id: checks
     attributes:
-      label: Additional Context
-      description: Add any relevant mockups, examples, or references.
-    validations:
-      required: false
+      label: Verification
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate.
+          required: true
+        - label: I am willing to submit a pull request for this feature.
+          required: false
