@@ -1,21 +1,28 @@
 import React, { useState } from 'react';
 import { FilledInstance } from '../../types/template';
-import { IconCopy, IconCheck, IconClose } from '../Icons';
+import { IconCopy, IconCheck, IconClose, IconTrash } from '../Icons';
 import { useModalDismiss } from '../../utils/useModalDismiss';
 import { copyToClipboard } from '../../utils/clipboard';
+import { ConfirmModal } from '../Common/ConfirmModal';
 
 interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   history: FilledInstance[];
+  onClearHistory?: () => void;
+  onDeleteItem?: (id: string) => void;
 }
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({
   isOpen,
   onClose,
   history,
+  onClearHistory,
+  onDeleteItem,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<FilledInstance | null>(null);
 
   useModalDismiss(isOpen, onClose);
 
@@ -60,12 +67,25 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
             </h3>
             <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Recently generated filled documents (Session Log)</p>
           </div>
-          <button
-            onClick={onClose}
-            className="icon-btn"
-          >
-            <IconClose size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {onClearHistory && history.length > 0 && (
+              <button
+                onClick={() => setIsClearAllConfirmOpen(true)}
+                className="btn-secondary"
+                style={{ fontSize: '0.75rem', padding: '4px 10px', height: '30px', color: '#ef4444' }}
+                title="Clear all session history"
+              >
+                <IconTrash size={13} />
+                <span>Clear All</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="icon-btn"
+            >
+              <IconClose size={18} />
+            </button>
+          </div>
         </div>
 
         {history.length === 0 ? (
@@ -108,7 +128,22 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                   {item.finalText}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+                  {onDeleteItem && (
+                    <button
+                      onClick={() => setItemToDelete(item)}
+                      className="btn-secondary"
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: '0.8rem',
+                        color: '#ef4444',
+                        height: '32px',
+                      }}
+                      title="Delete this record from history"
+                    >
+                      <IconTrash size={13} />
+                    </button>
+                  )}
                   <button
                     onClick={() => handleCopy(item)}
                     style={{
@@ -134,6 +169,37 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Confirm Clear All History */}
+      <ConfirmModal
+        isOpen={isClearAllConfirmOpen}
+        onClose={() => setIsClearAllConfirmOpen(false)}
+        onConfirm={() => {
+          onClearHistory?.();
+          setIsClearAllConfirmOpen(false);
+        }}
+        title="Clear All History?"
+        message="Are you sure you want to clear all session records? All generated documents in your session log will be permanently deleted."
+        confirmLabel="Clear History"
+        variant="danger"
+      />
+
+      {/* Confirm Delete Single Item */}
+      <ConfirmModal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={() => {
+          if (itemToDelete && onDeleteItem) {
+            onDeleteItem(itemToDelete.id);
+            setItemToDelete(null);
+          }
+        }}
+        title="Delete History Record?"
+        message="Are you sure you want to remove this document record from your session history?"
+        itemPreview={itemToDelete ? `${itemToDelete.templateName || 'Document'} • ${new Date(itemToDelete.filledAt).toLocaleTimeString()}` : undefined}
+        confirmLabel="Delete Record"
+        variant="danger"
+      />
     </div>
   );
 };

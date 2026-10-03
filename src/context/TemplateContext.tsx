@@ -3,6 +3,7 @@ import { Template } from '../types/template';
 import {
   getSavedTemplates,
   saveTemplate,
+  saveAllTemplates,
   deleteTemplate as deleteFromStorage,
   exportTemplatesJSON,
   parseTemplatesJSON,
@@ -32,7 +33,7 @@ function createFreshTemplate(): Template {
     category: 'Custom',
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    bodyText: 'Paste your raw text here...',
+    bodyText: '',
     blanks: [],
   };
   saveTemplate(fresh);
@@ -43,12 +44,29 @@ export const TemplateProvider: React.FC<{ children: ReactNode }> = ({ children }
   const { showToast } = useToast();
 
   const [savedTemplates, setSavedTemplates] = useState<Template[]>(() => {
-    return getSavedTemplates();
+    const list = getSavedTemplates();
+    let modified = false;
+    const sanitized = list.map(t => {
+      if (t.bodyText === 'Paste your raw text here...') {
+        modified = true;
+        return { ...t, bodyText: '' };
+      }
+      return t;
+    });
+    if (modified) {
+      saveAllTemplates(sanitized);
+    }
+    return sanitized;
   });
 
   const [currentTemplate, setCurrentTemplate] = useState<Template>(() => {
     const list = getSavedTemplates();
-    return list.length > 0 ? list[0] : createFreshTemplate();
+    const active = list.length > 0 ? list[0] : createFreshTemplate();
+    if (active.bodyText === 'Paste your raw text here...') {
+      active.bodyText = '';
+      saveTemplate(active);
+    }
+    return active;
   });
 
   const [isSamplesModalOpen, setIsSamplesModalOpen] = useState(false);

@@ -433,6 +433,15 @@ p {
   animation: fadeIn 0.2s ease-out forwards;
 }
 
+/* Interactive Document Workspace Empty State Placeholder */
+.canvas-empty-placeholder:empty:before {
+  content: attr(data-placeholder);
+  color: var(--text-dim);
+  font-style: italic;
+  pointer-events: none;
+  cursor: text;
+}
+
 /* ─────────────────────────────────────────────────────────────
    PRINT SYSTEM OVERRIDE
    Clean, foolproof print engine for single & batch documents.

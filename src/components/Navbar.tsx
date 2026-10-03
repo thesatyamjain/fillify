@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { IconPlus, IconHistory, IconDownload, IconUpload } from './Icons';
+import { IconPlus, IconHistory, IconExport, IconImport } from './Icons';
 import { useTemplates } from '../context/TemplateContext';
 import { useFill } from '../context/FillContext';
 
@@ -172,7 +172,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           title="Export JSON"
           aria-label="Export JSON"
         >
-          <IconDownload size={16} />
+          <IconExport size={16} />
         </button>
 
         <button
@@ -181,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           title="Import JSON"
           aria-label="Import JSON"
         >
-          <IconUpload size={16} />
+          <IconImport size={16} />
         </button>
         <input
           type="file"

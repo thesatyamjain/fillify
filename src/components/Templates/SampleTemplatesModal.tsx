@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Template } from '../../types/template';
 import { IconClose, IconTrash, IconArrowRight } from '../Icons';
 import { useModalDismiss } from '../../utils/useModalDismiss';
+import { ConfirmModal } from '../Common/ConfirmModal';
 
 interface SampleTemplatesModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
 
   useModalDismiss(isOpen, onClose);
 
@@ -168,7 +170,7 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteTemplate(t.id);
+                          setTemplateToDelete(t);
                         }}
                         title="Delete saved template"
                         style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
@@ -196,6 +198,22 @@ export const SampleTemplatesModal: React.FC<SampleTemplatesModalProps> = ({
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!templateToDelete}
+        onClose={() => setTemplateToDelete(null)}
+        onConfirm={() => {
+          if (templateToDelete) {
+            onDeleteTemplate(templateToDelete.id);
+            setTemplateToDelete(null);
+          }
+        }}
+        title="Delete Template?"
+        message="Are you sure you want to permanently delete this template? All associated document text and placeholder definitions will be removed."
+        confirmLabel="Delete Template"
+        itemPreview={templateToDelete ? `${templateToDelete.name} (${templateToDelete.blanks.length} blank fields)` : undefined}
+        variant="danger"
+      />
     </div>
   );
 };

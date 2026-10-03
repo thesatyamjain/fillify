@@ -14,6 +14,8 @@ import {
   IconPrint,
   IconDownload,
   IconUpload,
+  IconExport,
+  IconImport,
   IconPlus,
   IconTrash,
   IconSparkles,
@@ -21,7 +23,10 @@ import {
   IconArrowRight,
   IconRefresh,
   IconClose,
+  IconMail,
 } from '../Icons';
+import { BulkEmailModal } from '../Email/BulkEmailModal';
+import { ConfirmModal } from '../Common/ConfirmModal';
 import { useToast } from '../../context/ToastContext';
 import { copyToClipboard } from '../../utils/clipboard';
 
@@ -113,6 +118,9 @@ export const BulkView: React.FC<BulkViewProps> = ({
   const [isContinuousView, setIsContinuousView] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isClearAllConfirmOpen, setIsClearAllConfirmOpen] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState<{ index: number; summary: string } | null>(null);
   const [mobileTab, setMobileTab] = useState<'grid' | 'preview'>('grid');
 
   // Import Modal State
@@ -160,7 +168,20 @@ export const BulkView: React.FC<BulkViewProps> = ({
     setSelectedRowIndex(index + 1);
   };
 
-  const handleDeleteRow = (index: number) => {
+  const getRowSummary = (rowIndex: number): string => {
+    const row = rows[rowIndex];
+    if (!row) return `Row #${rowIndex + 1}`;
+    const populated = Object.entries(row)
+      .filter(([_, val]) => val && val.trim().length > 0)
+      .slice(0, 3)
+      .map(([k, v]) => {
+        const blank = template.blanks.find((b) => b.id === k);
+        return `${blank?.label || k}: "${v}"`;
+      });
+    return populated.length > 0 ? `Row #${rowIndex + 1} (${populated.join(', ')})` : `Row #${rowIndex + 1}`;
+  };
+
+  const executeDeleteRow = (index: number) => {
     if (rows.length <= 1) {
       setRows([createDefaultRow()]);
       setSelectedRowIndex(0);
@@ -170,13 +191,27 @@ export const BulkView: React.FC<BulkViewProps> = ({
     if (selectedRowIndex >= index && selectedRowIndex > 0) {
       setSelectedRowIndex(selectedRowIndex - 1);
     }
+    showToast(`Deleted Row #${index + 1}`);
+  };
+
+  const handleDeleteRow = (index: number) => {
+    const row = rows[index];
+    const isPopulated = row && Object.values(row).some((val) => val && val.trim().length > 0);
+    if (isPopulated) {
+      setRowToDelete({ index, summary: getRowSummary(index) });
+    } else {
+      executeDeleteRow(index);
+    }
   };
 
   const handleClearAllRows = () => {
-    if (window.confirm('Clear all bulk rows and start with 1 blank row?')) {
-      setRows([createDefaultRow()]);
-      setSelectedRowIndex(0);
-    }
+    setIsClearAllConfirmOpen(true);
+  };
+
+  const executeClearAllRows = () => {
+    setRows([createDefaultRow()]);
+    setSelectedRowIndex(0);
+    showToast('Spreadsheet reset to 1 blank row');
   };
 
   const handleLoadSamples = () => {
@@ -414,7 +449,15 @@ export const BulkView: React.FC<BulkViewProps> = ({
                 <IconRefresh size={13} /> Fill Samples
               </button>
               <button onClick={() => setIsImportModalOpen(true)} className="btn-secondary">
-                <IconUpload size={14} /> Import CSV
+                <IconImport size={14} /> Import CSV
+              </button>
+              <button
+                onClick={() => setIsEmailModalOpen(true)}
+                className="btn-secondary"
+                title="Dispatch or draft batch as emails"
+                style={{ borderColor: 'rgba(59, 130, 246, 0.4)', color: '#93c5fd' }}
+              >
+                <IconMail size={14} /> Email Batch
               </button>
             </div>
 
@@ -764,8 +807,18 @@ export const BulkView: React.FC<BulkViewProps> = ({
               style={{ fontSize: '0.8rem', padding: '0 8px' }}
               title="Download all documents as a structured .txt file"
             >
-              <IconDownload size={14} />
+              <IconExport size={14} />
               <span>Export .txt</span>
+            </button>
+
+            <button
+              onClick={() => setIsEmailModalOpen(true)}
+              className="btn-secondary"
+              style={{ fontSize: '0.8rem', padding: '0 8px', borderColor: 'rgba(59, 130, 246, 0.4)', color: '#93c5fd' }}
+              title="Send or draft emails for all batch records"
+            >
+              <IconMail size={14} />
+              <span>Email Batch</span>
             </button>
           </div>
 
@@ -921,6 +974,45 @@ export const BulkView: React.FC<BulkViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Bulk Email Modal */}
+      {isEmailModalOpen && (
+        <BulkEmailModal
+          isOpen={isEmailModalOpen}
+          onClose={() => setIsEmailModalOpen(false)}
+          template={template}
+          rows={rows}
+          allRenderedDocuments={allRenderedDocuments}
+        />
+      )}
+
+      {/* Confirm Clear All Rows Modal */}
+      <ConfirmModal
+        isOpen={isClearAllConfirmOpen}
+        onClose={() => setIsClearAllConfirmOpen(false)}
+        onConfirm={executeClearAllRows}
+        title="Clear All Bulk Records?"
+        message="Are you sure you want to clear all spreadsheet rows? All entered batch records will be discarded and reset to 1 blank row."
+        confirmLabel="Clear All Rows"
+        variant="danger"
+      />
+
+      {/* Confirm Delete Populated Row Modal */}
+      <ConfirmModal
+        isOpen={!!rowToDelete}
+        onClose={() => setRowToDelete(null)}
+        onConfirm={() => {
+          if (rowToDelete) {
+            executeDeleteRow(rowToDelete.index);
+            setRowToDelete(null);
+          }
+        }}
+        title="Delete Spreadsheet Row?"
+        message="This row contains entered data. Are you sure you want to delete this document record? This action cannot be undone."
+        itemPreview={rowToDelete?.summary}
+        confirmLabel="Delete Row"
+        variant="danger"
+      />
     </div>
   );
 };

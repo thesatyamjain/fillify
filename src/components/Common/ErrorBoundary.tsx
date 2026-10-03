@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { ConfirmModal } from './ConfirmModal';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -9,6 +10,7 @@ interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  showResetConfirm: boolean;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -18,6 +20,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       hasError: false,
       error: null,
       errorInfo: null,
+      showResetConfirm: false,
     };
   }
 
@@ -35,14 +38,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   };
 
   handleResetStorage = (): void => {
-    if (window.confirm('Resetting will clear locally cached template session pointers and reload. Your templates remain intact. Continue?')) {
-      try {
-        localStorage.removeItem('fillify_current_template_id_v3');
-      } catch {
-        // ignore
-      }
-      window.location.reload();
+    this.setState({ showResetConfirm: true });
+  };
+
+  executeResetStorage = (): void => {
+    try {
+      localStorage.removeItem('fillify_current_template_id_v3');
+    } catch {
+      // ignore
     }
+    window.location.reload();
   };
 
   handleDownloadDiagnostics = (): void => {
@@ -187,6 +192,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 Download Diagnostics
               </button>
             </div>
+
+            <ConfirmModal
+              isOpen={this.state.showResetConfirm}
+              onClose={() => this.setState({ showResetConfirm: false })}
+              onConfirm={this.executeResetStorage}
+              title="Reset Session State?"
+              message="Resetting will clear locally cached template session pointers and reload the application. Your saved templates and filled documents remain intact. Continue?"
+              confirmLabel="Reset & Reload"
+              variant="warning"
+            />
           </div>
         </div>
       );

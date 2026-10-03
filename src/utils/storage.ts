@@ -275,6 +275,26 @@ export function saveMultipleFilledInstances(instances: FilledInstance[]): Filled
   }
 }
 
+export function deleteFilledInstance(id: string): FilledInstance[] {
+  try {
+    const history = getFilledHistory().filter(h => h.id !== id);
+    safeSetItem(STORAGE_KEYS.FILLED_HISTORY, JSON.stringify(history));
+    return history;
+  } catch (e) {
+    console.error('Failed to delete fill history item:', e);
+    return [];
+  }
+}
+
+export function clearFilledHistory(): FilledInstance[] {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.FILLED_HISTORY);
+  } catch (e) {
+    console.error('Failed to clear fill history:', e);
+  }
+  return [];
+}
+
 
 export function exportTemplatesJSON(templates: Template[]): string {
   return JSON.stringify(templates, null, 2);

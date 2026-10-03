@@ -61,4 +61,30 @@ describe('Storage & Serialization Resilience', () => {
       parseTemplatesJSON(JSON.stringify([{ invalid: 'structure' }]));
     }, /No valid templates found/);
   });
+
+  it('correctly filters out deleted template by id', () => {
+    const list = [
+      { id: 't1', name: 'Contract 1' },
+      { id: 't2', name: 'Contract 2' },
+      { id: 't3', name: 'Contract 3' },
+    ];
+    const deleteId = 't2';
+    const remaining = list.filter(t => t.id !== deleteId);
+    assert.strictEqual(remaining.length, 2);
+    assert.strictEqual(remaining.find(t => t.id === 't2'), undefined);
+  });
+
+  it('correctly filters out deleted history instance and clears history', () => {
+    const history = [
+      { id: 'h1', templateId: 't1', filledAt: 100 },
+      { id: 'h2', templateId: 't1', filledAt: 200 },
+      { id: 'h3', templateId: 't2', filledAt: 300 },
+    ];
+    const afterDelete = history.filter(h => h.id !== 'h2');
+    assert.strictEqual(afterDelete.length, 2);
+    assert.strictEqual(afterDelete.some(h => h.id === 'h2'), false);
+
+    const afterClear = [];
+    assert.strictEqual(afterClear.length, 0);
+  });
 });

@@ -13,7 +13,11 @@ Fillify runs entirely in the browser. It parses standard placeholder conventions
 - **Triple Filling Workflows**:
   - **Wizard Mode**: Guided step-by-step completion focused on one input at a time with rapid keyboard progression.
   - **Form Mode**: Comprehensive single-page form layout suited for rapid multi-field entry and review.
-  - **Bulk Batch Mode**: High-density spreadsheet data-grid and CSV/TSV import for batch mail-merging dozens of documents at once with multi-page print and export.
+- **Bulk Batch Mail Merge & Direct Email Dispatch**:
+  - High-density spreadsheet data-grid and CSV/TSV copy-paste import for batch mail-merging dozens of documents at once.
+  - Multi-page batch printing and combined `.txt` document exporting.
+  - **Zero-Config Browser Email Drafts**: One-click deep links for Gmail web compose, OS default `mailto:` protocol, and RFC 822 `.eml` draft downloads with auto-detected recipient columns and subject variable interpolation (`{{Client Name}}`).
+  - **Direct Batch Email Sending**: Programmatic batch dispatch via Resend API or custom HTTP webhooks (Zapier/Make/n8n) with safe sequential rate-limiting, live progress bars, and zero server credentials stored outside the browser.
 - **Live Document Preview**: Real-time rendering with active highlight tracking showing exact substitution positions in the final output.
 - **Clean Export and Print Support**: Includes dedicated print styling that isolates the generated document and strips interface controls for physical printing or PDF export.
 - **Client-Side Persistence**: Stores templates and filled instance histories in browser `localStorage` for privacy and offline reliability.
@@ -67,6 +71,8 @@ Fillify runs entirely in the browser. It parses standard placeholder conventions
 | `npm run dev` | Launches the local Vite development server with Hot Module Replacement (HMR). |
 | `npm run build` | Compiles TypeScript declarations and outputs optimized production assets to `dist/`. |
 | `npm run preview` | Serves the local `dist/` production build for pre-deployment verification. |
+| `npm run typecheck` | Validates TypeScript types across the entire project with `tsc --noEmit`. |
+| `npm test` | Executes native Node.js automated unit and regression test suites. |
 
 ---
 
@@ -78,23 +84,28 @@ fillify/
 ├── src/
 │   ├── components/          # React presentation & layout components
 │   │   ├── Editor/          # Template editor and blank tagging interfaces
-│   │   ├── FillMode/        # Wizard and Form mode data entry interfaces
+│   │   ├── Email/           # Bulk email modal, tabbed draft and dispatch UI
+│   │   ├── FillMode/        # Wizard, Form, and Bulk spreadsheet mode interfaces
 │   │   ├── History/         # Filled document records and viewing modal
 │   │   ├── Preview/         # Live preview and document action toolbar
 │   │   ├── Templates/       # Preloaded sample templates and selector modals
 │   │   ├── Icons.tsx        # Inline SVG icon definitions
 │   │   ├── LandingPage.tsx  # Product overview and onboarding hero view
 │   │   └── Navbar.tsx       # Primary navigation and document status bar
+│   ├── context/             # React Context providers (Toast notifications)
 │   ├── types/               # TypeScript interfaces and data model definitions
 │   │   └── template.ts      # Template, Blank, and FillHistory types
 │   ├── utils/               # Helper utilities and storage management
+│   │   ├── email/           # Email validation, draft builders & dispatch engines
 │   │   ├── blankDetector.ts # Regex patterns and type inference logic
+│   │   ├── csvParser.ts     # CSV/TSV parser, column fuzzy matcher & exporters
 │   │   ├── storage.ts       # LocalStorage CRUD and JSON serialization
-│   │   ├── templateParser.ts# Placeholder substitution engine
+│   │   ├── templateParser.ts# Placeholder substitution & formatting engine
 │   │   └── useUndoRedo.ts   # State history management hook
 │   ├── App.tsx              # Root application state and view router
 │   ├── index.css            # Base stylesheet, design tokens, and print rules
 │   └── main.tsx             # Application bootstrap entry point
+├── test/                    # Automated Node.js native test runner test suites
 ├── index.html               # Main HTML document shell
 ├── package.json             # Project dependencies and script declarations
 ├── tsconfig.json            # TypeScript compiler configuration

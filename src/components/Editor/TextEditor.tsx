@@ -3,6 +3,7 @@ import { Template, Blank, SuggestedBlank, BlankType } from '../../types/template
 import { detectSuggestedBlanks } from '../../utils/blankDetector';
 import { toHumanReadableRawText, fromHumanReadableRawText } from '../../utils/templateParser';
 import { useUndoRedo } from '../../utils/useUndoRedo';
+import { pasteFromClipboard } from '../../utils/clipboard';
 import { BlankModal } from './BlankModal';
 import {
   IconUndo,
@@ -16,7 +17,10 @@ import {
   IconCheck,
   IconRefresh,
   IconChevronDown,
+  IconClipboard,
 } from '../Icons';
+import { ConfirmModal } from '../Common/ConfirmModal';
+import { SAMPLE_TEMPLATES } from '../../utils/storage';
 
 function replaceAllText(str: string, search: string, replacement: string): string {
   return str.split(search).join(replacement);
@@ -139,6 +143,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   }, [currentHistoryTemplate]);
 
   const activeTemplate = currentHistoryTemplate;
+  const defaultSample = SAMPLE_TEMPLATES.find((s) => s.id === activeTemplate.id);
 
   const [selectedSpan, setSelectedSpan] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,6 +154,8 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   const [showSaveToast, setShowSaveToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('Template updated & saved successfully!');
   const [mobileTab, setMobileTab] = useState<'canvas' | 'blanks'>('canvas');
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [blankToDelete, setBlankToDelete] = useState<Blank | null>(null);
 
   const handleInsertBlankAtEnd = (blankId: string, blankLabel: string) => {
     const token = `[[${blankId}]]`;
@@ -181,16 +188,43 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   const handleResetTemplate = () => {
-    if (window.confirm('Are you sure you want to reset this template? All document text and defined variable fields will be cleared.')) {
+    setIsResetConfirmOpen(true);
+  };
+
+  const confirmResetTemplate = () => {
+    if (defaultSample) {
+      commitUpdate({
+        ...defaultSample,
+        updatedAt: Date.now(),
+      });
+      setToastMessage(`Restored "${defaultSample.name}" to original default!`);
+    } else {
       commitUpdate({
         ...activeTemplate,
         bodyText: '',
         blanks: [],
       });
       setToastMessage('Template reset successfully!');
-      setShowSaveToast(true);
-      setTimeout(() => setShowSaveToast(false), 3000);
     }
+    setShowSaveToast(true);
+    setTimeout(() => setShowSaveToast(false), 3000);
+  };
+
+  const confirmDeleteBlank = () => {
+    if (!blankToDelete) return;
+    const token = `{{${blankToDelete.id}}}`;
+    let newBody = activeTemplate.bodyText;
+    // Remove token together with any surrounding space pair it created.
+    newBody = replaceAllText(newBody, ` ${token} `, ' ');
+    newBody = replaceAllText(newBody, `${token} `, '');
+    newBody = replaceAllText(newBody, ` ${token}`, '');
+    newBody = replaceAllText(newBody, token, '');
+    const updatedBlanks = activeTemplate.blanks.filter((b) => b.id !== blankToDelete.id);
+    commitUpdate({ ...activeTemplate, bodyText: newBody, blanks: updatedBlanks });
+    setToastMessage(`Removed field "${blankToDelete.label}"`);
+    setShowSaveToast(true);
+    setTimeout(() => setShowSaveToast(false), 2400);
+    setBlankToDelete(null);
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -354,16 +388,41 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   const handleDeleteBlank = (id: string) => {
-    // Only remove the token from the canvas text.
-    // The blank definition stays in activeTemplate.blanks so it remains in Defined Blanks.
-    const token = `{{${id}}}`;
-    let newBody = activeTemplate.bodyText;
-    // Remove token together with any surrounding space pair it created.
-    newBody = replaceAllText(newBody, ` ${token} `, ' ');
-    newBody = replaceAllText(newBody, `${token} `, '');
-    newBody = replaceAllText(newBody, ` ${token}`, '');
-    newBody = replaceAllText(newBody, token, '');
-    commitUpdate({ ...activeTemplate, bodyText: newBody });
+    const blank = activeTemplate.blanks.find((b) => b.id === id);
+    if (blank) {
+      setBlankToDelete(blank);
+    }
+  };
+
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await pasteFromClipboard();
+      if (text && text.trim()) {
+        const currentBody = activeTemplate.bodyText === 'Paste your raw text here...' ? '' : activeTemplate.bodyText;
+        if (!currentBody) {
+          const { updatedBodyText, updatedBlanks } = fromHumanReadableRawText(text, activeTemplate.blanks);
+          commitUpdate({ ...activeTemplate, bodyText: updatedBodyText, blanks: updatedBlanks });
+          setToastMessage('Pasted clipboard text into document');
+          setShowSaveToast(true);
+          setTimeout(() => setShowSaveToast(false), 2400);
+        } else {
+          const newBody = `${currentBody}\n\n${text}`;
+          const { updatedBodyText, updatedBlanks } = fromHumanReadableRawText(newBody, activeTemplate.blanks);
+          commitUpdate({ ...activeTemplate, bodyText: updatedBodyText, blanks: updatedBlanks });
+          setToastMessage('Appended clipboard text to document');
+          setShowSaveToast(true);
+          setTimeout(() => setShowSaveToast(false), 2400);
+        }
+      } else {
+        setToastMessage('Clipboard is empty or access was denied. You can press Ctrl+V directly on the canvas.');
+        setShowSaveToast(true);
+        setTimeout(() => setShowSaveToast(false), 3500);
+      }
+    } catch {
+      setToastMessage('Clipboard access blocked. Click the canvas and press Ctrl+V to paste.');
+      setShowSaveToast(true);
+      setTimeout(() => setShowSaveToast(false), 3500);
+    }
   };
 
   const handleRunAutoDetect = () => {
@@ -443,22 +502,25 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
   const renderUnifiedCanvasContent = () => {
     let body = activeTemplate.bodyText;
+    if (body === 'Paste your raw text here...') {
+      body = '';
+    }
     if (!body) {
       return (
         <span
           contentEditable
           suppressContentEditableWarning
+          data-placeholder="Paste your raw text or type document template here... Drag fields or highlight words to define blanks."
+          className="canvas-empty-placeholder"
           onBlur={(e) => {
-            const val = e.currentTarget.innerText;
+            const val = e.currentTarget.innerText.trim();
             if (val) {
               const { updatedBodyText, updatedBlanks } = fromHumanReadableRawText(val, activeTemplate.blanks);
               commitUpdate({ ...activeTemplate, bodyText: updatedBodyText, blanks: updatedBlanks });
             }
           }}
-          style={{ color: 'var(--text-dim)', fontStyle: 'italic', outline: 'none', display: 'inline-block', width: '100%' }}
-        >
-          Click here to paste or type document text... Drag fields from the right panel to insert at exact mouse drop position.
-        </span>
+          style={{ outline: 'none', display: 'inline-block', width: '100%', minHeight: '280px' }}
+        />
       );
     }
 
@@ -771,7 +833,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
             }}
-            title="Reset Template (Clear all text & blanks)"
+            title={defaultSample ? "Restore Default Sample Template" : "Reset Template (Clear all text & blanks)"}
           >
             <IconRefresh size={14} />
           </button>
@@ -854,27 +916,47 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       <div className="editor-responsive-grid no-print">
         {/* Left: Single Unified Interactive Template Workspace Card */}
         <div className={`workspace-panel ${mobileTab !== 'canvas' ? 'hide-on-mobile' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)', fontFamily: 'var(--font-heading)', letterSpacing: '-0.02em' }}>
                 Interactive Document Workspace
               </label>
             </div>
 
-            <button
-              onClick={handleRunAutoDetect}
-              className="btn-secondary"
-              style={{
-                height: '32px',
-                padding: '0 12px',
-                background: 'rgba(245, 158, 11, 0.12)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
-                color: '#fbbf24',
-                fontWeight: 700,
-              }}
-            >
-              <IconSparkles size={14} color="#fbbf24" /> Auto-Detect Blanks
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={handlePasteFromClipboard}
+                className="btn-secondary"
+                title="Paste text from clipboard into document"
+                style={{
+                  height: '32px',
+                  padding: '0 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <IconClipboard size={14} /> Paste Text
+              </button>
+
+              <button
+                onClick={handleRunAutoDetect}
+                className="btn-secondary"
+                style={{
+                  height: '32px',
+                  padding: '0 12px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                  color: '#fbbf24',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <IconSparkles size={14} color="#fbbf24" /> Auto-Detect Blanks
+              </button>
+            </div>
           </div>
 
           {/* Drag & Drop Point-Target Enabled Canvas Drop Zone */}
@@ -884,6 +966,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             onDragOver={handleDragOverCanvas}
             onDragLeave={handleDragLeaveCanvas}
             onDrop={handleDropOnCanvas}
+            onPaste={(e) => {
+              const currentBody = activeTemplate.bodyText === 'Paste your raw text here...' ? '' : activeTemplate.bodyText;
+              if (!currentBody) {
+                const pastedText = e.clipboardData.getData('text/plain');
+                if (pastedText) {
+                  e.preventDefault();
+                  const { updatedBodyText, updatedBlanks } = fromHumanReadableRawText(pastedText, activeTemplate.blanks);
+                  commitUpdate({ ...activeTemplate, bodyText: updatedBodyText, blanks: updatedBlanks });
+                }
+              }
+            }}
             style={{
               width: '100%',
               background: isCanvasHoveredForDrop ? 'var(--bg-surface-elevated)' : 'var(--bg-dark)',
@@ -915,7 +1008,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, background: 'var(--bg-surface-elevated)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                {activeTemplate.bodyText.length} chars
+                {(activeTemplate.bodyText === 'Paste your raw text here...' ? 0 : activeTemplate.bodyText.length)} chars
               </span>
               <span style={{ fontSize: '0.75rem', color: '#22d3ee', fontWeight: 600 }}>{activeTemplate.blanks.length} fields defined</span>
             </div>
@@ -1209,8 +1302,36 @@ export const TextEditor: React.FC<TextEditorProps> = ({
 
       {/* Dedicated Print Output Body for Clean Page Output (Hidden on screen, pure output in print) */}
       <div className="print-only print-document-body">
-        {toHumanReadableRawText(activeTemplate.bodyText, activeTemplate.blanks)}
+        {toHumanReadableRawText(activeTemplate.bodyText === 'Paste your raw text here...' ? '' : activeTemplate.bodyText, activeTemplate.blanks)}
       </div>
+
+      {/* Confirm Reset Template Modal */}
+      <ConfirmModal
+        isOpen={isResetConfirmOpen}
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={confirmResetTemplate}
+        title={defaultSample ? "Restore Default Template?" : "Reset Template?"}
+        message={
+          defaultSample
+            ? `Are you sure you want to restore "${defaultSample.name}" to its original default wording and placeholder fields? Any changes you made will be reverted.`
+            : "Are you sure you want to reset this template? All document text and defined variable fields will be cleared. This action cannot be undone."
+        }
+        confirmLabel={defaultSample ? "Restore Default" : "Reset Canvas"}
+        itemPreview={defaultSample ? `${defaultSample.name} (${defaultSample.blanks.length} blank fields)` : undefined}
+        variant={defaultSample ? "warning" : "danger"}
+      />
+
+      {/* Confirm Delete Blank Modal */}
+      <ConfirmModal
+        isOpen={!!blankToDelete}
+        onClose={() => setBlankToDelete(null)}
+        onConfirm={confirmDeleteBlank}
+        title="Remove Placeholder Field?"
+        message="Are you sure you want to remove this field? Any occurrences of this token in your document text will be removed."
+        itemPreview={blankToDelete ? `Field: "${blankToDelete.label}" (${blankToDelete.type})` : undefined}
+        confirmLabel="Remove Field"
+        variant="danger"
+      />
     </div>
   );
 };

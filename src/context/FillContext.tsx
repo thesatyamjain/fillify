@@ -4,6 +4,8 @@ import {
   getFilledHistory,
   saveFilledInstance,
   saveMultipleFilledInstances,
+  deleteFilledInstance,
+  clearFilledHistory,
 } from '../utils/storage';
 import { useToast } from './ToastContext';
 
@@ -18,6 +20,8 @@ interface FillContextType {
   closeHistoryModal: () => void;
   saveSingleFillHistory: (templateId: string, templateName: string, values: Record<string, string>, finalText: string) => void;
   saveMultipleFillHistory: (instances: FilledInstance[]) => void;
+  deleteHistoryItem: (id: string) => void;
+  clearAllHistory: () => void;
 }
 
 const FillContext = createContext<FillContextType | null>(null);
@@ -57,6 +61,21 @@ export const FillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [showToast]
   );
 
+  const deleteHistoryItem = useCallback(
+    (id: string) => {
+      const updated = deleteFilledInstance(id);
+      setFilledHistory(updated);
+      showToast('Document record removed from history');
+    },
+    [showToast]
+  );
+
+  const clearAllHistory = useCallback(() => {
+    const updated = clearFilledHistory();
+    setFilledHistory(updated);
+    showToast('Session history cleared');
+  }, [showToast]);
+
   return (
     <FillContext.Provider
       value={{
@@ -68,6 +87,8 @@ export const FillProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         closeHistoryModal,
         saveSingleFillHistory,
         saveMultipleFillHistory,
+        deleteHistoryItem,
+        clearAllHistory,
       }}
     >
       {children}

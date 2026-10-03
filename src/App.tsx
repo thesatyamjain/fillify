@@ -54,6 +54,8 @@ function AppWorkspace() {
     closeHistoryModal,
     saveSingleFillHistory,
     saveMultipleFillHistory,
+    deleteHistoryItem,
+    clearAllHistory,
   } = useFill();
 
   const handleGetStarted = () => {
@@ -141,6 +143,8 @@ function AppWorkspace() {
                 isOpen={isHistoryModalOpen}
                 onClose={closeHistoryModal}
                 history={filledHistory}
+                onClearHistory={clearAllHistory}
+                onDeleteItem={deleteHistoryItem}
               />
             </Suspense>
           </>

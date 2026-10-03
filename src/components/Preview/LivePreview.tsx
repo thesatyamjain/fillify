@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Template } from '../../types/template';
 import { replaceBlanksInText } from '../../utils/templateParser';
-import { IconCopy, IconCheck, IconPrint, IconDownload, IconEdit, IconRefresh } from '../Icons';
+import { IconCopy, IconCheck, IconPrint, IconExport, IconEdit, IconRefresh } from '../Icons';
 import { useToast } from '../../context/ToastContext';
 import { copyToClipboard } from '../../utils/clipboard';
 
@@ -187,7 +187,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
           className="btn-secondary"
           style={{ padding: '12px 14px', fontSize: '0.875rem', justifyContent: 'center', height: '42px' }}
         >
-          <IconDownload size={16} /> Export .txt File
+          <IconExport size={16} /> Export .txt File
         </button>
       </div>
     </div>

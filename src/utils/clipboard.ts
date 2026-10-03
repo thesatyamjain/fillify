@@ -29,3 +29,19 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Read text from clipboard with security context check.
+ */
+export async function pasteFromClipboard(): Promise<string | null> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.readText) {
+    try {
+      const text = await navigator.clipboard.readText();
+      return text;
+    } catch (err) {
+      console.warn('Clipboard read failed or permission denied:', err);
+      return null;
+    }
+  }
+  return null;
+}
